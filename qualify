@@ -9,6 +9,8 @@ use lib 't/lib';
 use lib 'deps/lib';
 
 use Test::Unit::TestRunner;
+use Test::Unit::TestSuite;
+
 
 my $testrunner = Test::Unit::TestRunner->new();
 
@@ -18,32 +20,31 @@ my $root = dirname($base);
 
 my @testlist;
 my @files;
+my @tests;
 discoverFiles("$root/t/lib", \@files);
 my $replace = "$root/t/lib";
+my $suite = Test::Unit::TestSuite->empty_new('my suite name');
 while(my $file = shift(@files)) {
     $file =~ s/$replace\///;
     $file =~ s/\//::/g;
     $file =~ s/\..*$//;
-    push(@testlist, $file);
+    push(@tests, $file);
+   $suite->add_test(Test::Unit::TestSuite->new($file));
     
 }
+my $result = $testrunner->do_run($suite);
 
-
-for my $test (@testlist) {
-    print "$test\n";
-    $testrunner->start($test);
-}
 
 
 sub discoverFiles {
     my ($root, $files) = @_;
-
     my @items = qx(ls -1 $root);
     chomp(@items);
     for my $item (@items) {
 	if ($item =~ m/^\./) {
 	    next;
 	}
+	
 	if (-d "$root/$item") {
 	    discoverFiles("$root/$item", $files);
 	}
@@ -53,5 +54,5 @@ sub discoverFiles {
 	}
 
     }
-
+    
 }

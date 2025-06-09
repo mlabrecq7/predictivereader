@@ -6,9 +6,76 @@ sub new {
     my ($class) = @_;
 
     my $this;
-    $this->{name} = 'tim';
+    my %hash;
+    $this->{data} = \%hash; 
     bless($this, $class);
     return $this;
 
 }
+
+sub encodeString {
+    my ($this, $string, $size) = @_;
+
+    
+    my $length = (length $string) -1;
+    for my $i (0 .. $length) {
+	
+	my $entry;
+	my $next;
+	if ($i + $size > $length + 1) {
+	    my $tempstr = $string . substr($string, 0, $size);
+	    $entry = substr($tempstr, $i, $size);
+	    $next = substr($tempstr, $i + $size, 1);
+
+	}
+	elsif ($i + $size == $length + 1) {
+	    $entry = substr($string, $i, $size);
+	    $next = substr($string, 0, 1);
+
+	}
+	else {
+	    $entry = substr($string, $i, $size);
+	    $next = substr($string, $i + $size, 1);
+
+	    
+	}
+	if (!defined($this->{data}->{$entry})) {
+	    my %hash;
+	    $this->{data}->{$entry} = \%hash;
+	}
+	if (!defined($this->{data}->{$entry}->{$next})) {
+	    my %hash;
+	    $this->{data}->{$entry}->{$next} = 0;
+
+	}
+	$this->{data}->{$entry}->{$next}++;
+	
+    }
+    
+}
+
+sub getNextChar {
+    my ($this, $entry) = @_;
+
+    my @options = keys(%{$this->{data}->{$entry}});
+
+    my $char = '';
+    my $max = 0;
+    
+    for my $key (@options) {
+	my $value = $this->{data}->{$entry}->{$key};
+	if ($value > $max){
+	    $char = $key;
+	    $max = $value;
+	}
+
+
+    }
+
+    return $char;
+    
+}
+
+
+
 1;
