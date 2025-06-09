@@ -56,11 +56,60 @@ sub encodeString {
 
 sub getNextChar {
     my ($this, $entry) = @_;
+    
+    my @sizes = $this->_findKeySizes();
 
-    my @options = keys(%{$this->{data}->{$entry}});
+    my @entries;
+    for my $size (@sizes) {
+
+	if (length($entry) <= $size) {
+	    push(@entries, $entry);
+	    next;
+	}
+	my $smaller = substr($entry, -$size);
+
+	push(@entries, $smaller);
+    }
+
+    my %options;
+
+    for my $entry (@entries) {
+	my $char = $this->_getNextChar($entry);
+	if (!defined($options{$char})) {
+	    $options{$char} = 0;
+
+	}
+	$options{$char}++;
+
+    }
+    
+    
+    my $char = '';
+    my $max = 0;
+
+    for my $key (keys(%options)) {
+	my $value = $options{$key};
+	if ($value > $max){
+	    $char = $key;
+	    $max = $value;
+	}
+
+    }
+
+    return $char;
+    
+}
+
+
+sub _getNextChar {
+    my ($this, $entry) = @_;
+
+
 
     my $char = '';
     my $max = 0;
+    
+    my @options = keys(%{$this->{data}->{$entry}});
     
     for my $key (@options) {
 	my $value = $this->{data}->{$entry}->{$key};
@@ -73,6 +122,23 @@ sub getNextChar {
     }
 
     return $char;
+    
+}
+
+sub _findKeySizes {
+    my ($this) = @_;
+    my @options = keys(%{$this->{data}});
+
+    my %sizes;
+
+    for my $key (@options) {
+	$sizes{length($key)} = 1;
+    }
+
+    return keys(%sizes);
+    
+
+		       
     
 }
 
