@@ -1,0 +1,40 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+
+
+use ML::Encoder::Reader;
+use ML::Encoder::Writer;
+
+my ($input, $length, $seed, $datastore, $saveDataWhere);
+
+GetOptions ("length=i" => \$length,    # numeric
+            "livefile=s"   => \$seed,      # string
+            "input=s"  => \$input,
+	    "savedData=s" => \$datastore,
+	    "saveLocation=s" => \$saveDataWhere,
+    )  
+or die("Error in command line arguments\n");
+
+my $data = {
+    readDataFrom => $datastore,
+    saveDataTo   => $saveDataWhere,
+};
+
+my $reader = ML::Encoder::Reader->new($data);	
+my $writer = ML::Encoder::Writer->new($reader);
+if (defined($seed)) {
+    open(my $FILE, '<', $seed) or die"bad file $seed: $!\n";
+    my $line = join('', <$FILE>);
+
+    for my $size (2 .. length($input)) {
+	$reader->encodeString($line, $size);
+    }
+}
+my $text = $writer->startingFrom($input, $length);
+print "$text\n";
