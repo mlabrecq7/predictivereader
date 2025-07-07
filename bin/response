@@ -32,7 +32,7 @@ if (defined($seed)) {
     open(my $FILE, '<', $seed) or die"bad file $seed: $!\n";
     my $line = join('', <$FILE>);
 
-    for my $size (2 .. length($input)) {
+    for my $size (2 .. 10) {
 	$reader->encodeString($line, $size);
     }
 }

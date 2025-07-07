@@ -94,8 +94,31 @@ sub test_recover_earlier_data {
     chomp(@output);
     
     $self->assert_equals('use str\" -', $output[0]);
+   
 
+}
 
+#this test turned off because it is too long
+sub no_test_save_data_on_fresh_directory_from_ebook {
+    my ($self) = @_;
+
+    my $scriptPath = "$FindBin::Bin/bin/response";
+    my $dir = File::Temp->newdir(); # CLEANUP => 1 by default
+
+    my $dataPath = "$dir/savedData";
+    qx(mkdir $dataPath);
+
+    
+    my $cmd = "$scriptPath -input Ishm -length 40 -saveLocation $dataPath/lamo -livefile /home/mike/Downloads/mobydick.txt";
+
+    $self->assert_equals(1, !-e "$dataPath/lamo");
+    
+    my @output = qx($cmd);
+    $self->assert_equals(1, -e "$dataPath/lamo");
+
+    $self->assert_equals('Ishmeal is a big whale', $output[0]);
+
+    
 }
 
 1;

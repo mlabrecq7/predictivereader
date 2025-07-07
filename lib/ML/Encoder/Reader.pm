@@ -14,28 +14,32 @@ sub new {
 	$this->_loadData($data->{readDataFrom});
     }
     $this->{saveLocation} = $data->{saveDataTo};
+
+
+    my @array;
+    $this->{sizes} = @array;
+    $this->{dirty} = 1;
     
     return $this;
-
 
     
 }
 
 sub _loadData {
     my ($this, $data) = @_;
-    
+    $this->{dirty} = 1;
     open(my $FILE, '<', $data) or die "$data not openable $!\n";
-    my $debug = '';
+    
     for my $line (<$FILE>) {
 	chomp($line);
-
+	
 	my @parts = split(',', $line);
 	my $main = shift(@parts);
 	if (!defined($main)) {
 	    next;
 	}
-	$main =~ s/[COMMA]/,/g;
-	$debug .= $main;
+	$main =~ s/\[COMMA\]/,/g;
+
 	if (!defined($this->{data}->{$main})) {
 	    my %hash;
 	    $this->{data}->{$main} = \%hash;
@@ -46,18 +50,13 @@ sub _loadData {
 	    if ($key eq '[COMMA]'){
 		$key = ',';
 	    }
-	    $debug .= $key;
+
 	    if (!defined($this->{data}->{$main}->{$key})) {
 		
 		$this->{data}->{$main}->{$key} = 0;
 	    }
 	    my $value = shift(@parts);
-	    $debug .= $value ;
-	    if (!defined($value)) {
-
-		die "$line --> $debug\n";
-
-	    }
+	    
 	    $this->{data}->{$main}->{$key} += $value;
 	}
 
@@ -68,7 +67,7 @@ sub _loadData {
 
 sub encodeString {
     my ($this, $string, $size) = @_;
-
+    $this->{dirty} = 1;
     $string =~ s/\n/ /g;
     my $length = (length $string) -1;
     for my $i (0 .. $length) {
@@ -152,33 +151,21 @@ sub getNextChar {
     }
 
     my %options;
-
+    my @choices;
     for my $entry (@entries) {
+	
 	my $char = $this->_getNextChar($entry);
+	
 	if (!defined($options{$char})) {
 	    $options{$char} = 0;
 
 	}
+	push(@choices, $char);
 	$options{$char}++;
 
     }
+    my $char = $choices[rand @choices];
     
-    
-    my $char = '';
-    my $max = 0;
-
-    for my $key (keys(%options)) {
-	my $value = $options{$key};
-	if ($value > $max){
-	    $char = $key;
-	    $max = $value;
-	}
-
-    }
-
-    if ($char eq '') {
-	$char = ' ';
-    }
     return $char;
     
 }
@@ -210,17 +197,23 @@ sub _getNextChar {
 
 sub _findKeySizes {
     my ($this) = @_;
-    my @options = keys(%{$this->{data}});
+    if ($this->{dirty}) {
+    
+	my @options = keys(%{$this->{data}});
+	
+	my %sizes;
+	
+	for my $key (@options) {
+	    $sizes{length($key)} = 1;
+	}
 
-    my %sizes;
-
-    for my $key (@options) {
-	$sizes{length($key)} = 1;
+	
+	my @array =  keys(%sizes);
+	$this->{dirty} = 0;
+	$this->{sizes} = \@array;
     }
 
-    return keys(%sizes);
-    
-
+    return @{$this->{sizes}}
 		       
     
 }

@@ -14,23 +14,25 @@ sub new {
 
 }
 
-sub _recurseTillDone {
-    my ($this, $soFar, $targetLength) = @_;
-
-    if (length($soFar) == $targetLength) {
-	return $soFar;
-    }
-
-    $soFar .= $this->{reader}->getNextChar($soFar);
-    return $this->_recurseTillDone($soFar, $targetLength);
-
-
-}
 
 sub startingFrom {
     my ($this, $key, $targetLength) = @_;
 
-    return $this->_recurseTillDone($key, length($key) + $targetLength);
+    my $output = $key;
+    my $count = 0;
+    while(length($output) < $targetLength + length($key)) {
+	$output .= $this->{reader}->getNextChar($output);
+	$count++;
+
+	if ($count == 200) {
+	    return $output;
+
+	}
+    }
+
+
+    
+    return $output
     
     
 
